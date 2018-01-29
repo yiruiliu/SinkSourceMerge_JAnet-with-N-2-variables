@@ -1,0 +1,34 @@
+##subfunction that extracts In(t)s
+numOfSinks:=function(net)
+local W,i,Sinks;
+W:=net[2];
+Sinks:=[];
+for i in [1..Size(W)] do
+    if not W[i][2] in Sinks then
+		Append(Sinks,[W[i][2]]);
+	fi;
+od;
+return Sinks;
+end;
+
+
+AddRateVariableTowMore:=function(net,sink1,sink2)
+local Sinks,newedge3,newedge4, nEdges, nSources, Q, W;
+if Maximum(sink1,sink2)>Size(net[2]) or Minimum(sink1,sink2)<0 then
+	Print("Error! Please input the right index of sink nodes.");
+	return;
+fi;
+Sinks:=numOfSinks(net);
+nEdges:=Size(net[1]);
+nSources:=net[1][1][1]-1;
+newedge3:=[nEdges+nSources+1];
+newedge4:=[nEdges+nSources+2];
+Append(newedge3,[Sinks[sink1]]);
+Append(newedge4,[Sinks[sink2]]);
+Q:=ShallowCopy(net[1]);
+W:=ShallowCopy(net[2]);
+Append(Q,[newedge3]);
+Append(Q,[newedge4]);
+return [Q,W];
+end;
+
