@@ -32,3 +32,99 @@ Append(Q,[newedge4]);
 return [Q,W];
 end;
 
+
+NCShannonBounded:=function ( ncinstance )
+    local  ShOB, i, linrows, con, conlin, j, conineq;
+    ShOB := GenShannonUnBounded( ncinstance[3] );  ###shannon outer bound
+    i := Size( ShOB[1] ) + 1;
+    linrows := [  ];
+    for con  in ncinstance[1]  do   #### H(Out(t),In(t))=H(In(t))
+        conlin := ZeroMutable( [ 1 .. 2 ^ ncinstance[3] - 1 ] );
+        conlin[set2int( con[1] )] := 1;
+        conlin[set2int( con[2] )] := -1;
+        Append( ShOB[1], [ conlin ] );
+        Append( ShOB[2], [ 0 ] );
+        Append( linrows, [ i ] );
+        i := i + 1;
+    od;
+    conlin := ZeroMutable( [ 1 .. 2 ^ ncinstance[3] - 1 ] );
+    for j  in [ 1 .. ncinstance[2] ]  do    #### H(s1,s2,..,sj)=H(s1)+H(s2)+,...,+H(sj)
+        conlin[set2int( [ j ] )] := 1;
+    od;
+    conlin[set2int( [ 1 .. ncinstance[2] ] )] := -1;
+    Append( ShOB[1], [ conlin ] );
+    Append( ShOB[2], [ 0 ] );
+    Append( linrows, [ i ] );
+    i := i + 1;
+    for j  in [ 1 .. Size( ShOB[1] ) ]  do
+        ShOB[1][j] := Concatenation( ZeroMutable( [ 1 .. ncinstance[3]+3 ] ), 
+           ShOB[1][j] );
+    od;
+    for j  in [ 1 .. ncinstance[2] ]  do      ###0<=W<=H
+        conineq 
+         := ZeroMutable( [ 1 .. 2 ^ ncinstance[3] - 1 + ncinstance[3]+3 ] );
+        conineq[j] := 1;
+        conineq[ncinstance[3]+3 + set2int( [ j ] )] := -1;
+        Append( ShOB[1], [ conineq ] );
+        Append( ShOB[2], [ 0 ] );
+        conineq 
+         := ZeroMutable( [ 1 .. 2 ^ ncinstance[3] - 1 + ncinstance[3]+3 ] );
+        conineq[j] := -1;
+        Append( ShOB[1], [ conineq ] );
+        Append( ShOB[2], [ 0 ] );
+    od;
+    for j  in [ ncinstance[2] + 1 .. ncinstance[3]-2 ]  do  ##H<=R
+        conineq 
+         := ZeroMutable( [ 1 .. 2 ^ ncinstance[3] - 1 + ncinstance[3]+3 ] );
+        conineq[j] := -1;
+        conineq[ncinstance[3]+3 + set2int( [ j ] )] := 1;
+        Append( ShOB[1], [ conineq ] );
+        Append( ShOB[2], [ 0 ] );
+        conineq 
+         := ZeroMutable( [ 1 .. 2 ^ ncinstance[3] - 1 + ncinstance[3] ] );
+        conineq[j] := -1;
+        Append( ShOB[1], [ conineq ] );
+        Append( ShOB[2], [ 0 ] );
+    od;
+    
+    for j in [ncinstance[3]+2..ncinstance[3]+3] do  ###h6'<=H(ncinstance[3]-1), h7'<=H(ncinstance[3])
+	 conineq 
+         := ZeroMutable( [ 1 .. 2 ^ ncinstance[3] - 1 + ncinstance[3]+3 ] );
+	  conineq[j] := 1;
+	  conineq[ncinstance[3]+3 + set2int( [ j-3 ] )] := -1;
+	  Append( ShOB[1], [ conineq ] );
+          Append( ShOB[2], [ 0 ] );
+    od;
+    conineq 
+    := ZeroMutable( [ 1 .. 2 ^ ncinstance[3] - 1 + ncinstance[3]+3 ] );  ####h5=h6'+h7'-H(ncinstance[3]-1,ncinstance[3])
+    conineq[ncinstance[3]-1]:=1;
+    conineq[ncinstance[3]+3 + set2int( [ncinstance[3]-1, ncinstance[3]] )] := 1;
+    conineq[ncinstance[3]+2]:=-1;
+    conineq[ncinstance[3]+3]:=-1;
+    Append( ShOB[1], [ conineq ] );
+    Append( ShOB[2], [ 0 ] );
+    Append( linrows, [ Size(ShOB[2]) ] );
+    conineq 
+    := ZeroMutable( [ 1 .. 2 ^ ncinstance[3] - 1 + ncinstance[3]+3 ] );
+    conineq[ncinstance[3]]:=1;
+    conineq[ncinstance[3]-1]:=1;
+    conineq[ncinstance[3]+2]:=-1;
+    Append( ShOB[1], [ conineq ] );
+    Append( ShOB[2], [ 0 ] );
+    Append( linrows, [ Size(ShOB[2]) ] );
+    conineq 
+    := ZeroMutable( [ 1 .. 2 ^ ncinstance[3] - 1 + ncinstance[3]+3 ] );
+    conineq[ncinstance[3]]:=1;
+    conineq[ncinstance[3]-1]:=1;
+    conineq[ncinstance[3]+3]:=-1;
+    Append( ShOB[1], [ conineq ] );
+    Append( ShOB[2], [ 0 ] );
+    Append( linrows, [ Size(ShOB[2]) ] );
+    conineq := ZeroMutable( [ 1 .. 2 ^ ncinstance[3] - 1 + ncinstance[3] ] );
+    for j  in [ 1 .. ncinstance[3] ]  do
+        conineq[j] := 1;
+    od;
+    Append( ShOB[1], [ conineq ] );
+    Append( ShOB[2], [ 1 ] );
+    return [ ShOB[1], ShOB[2], linrows ];
+end;
