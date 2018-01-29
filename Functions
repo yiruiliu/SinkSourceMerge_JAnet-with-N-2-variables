@@ -32,8 +32,8 @@ Append(Q,[newedge4]);
 return [Q,W];
 end;
 
-
-NCShannonBounded:=function ( ncinstance )
+#####Add two more variables instead of three
+NCShannonBoundedAnetTowMore:=function ( ncinstance )
     local  ShOB, i, linrows, con, conlin, j, conineq;
     ShOB := GenShannonUnBounded( ncinstance[3] );  ###shannon outer bound
     i := Size( ShOB[1] ) + 1;
@@ -104,7 +104,7 @@ NCShannonBounded:=function ( ncinstance )
     Append( ShOB[1], [ conineq ] );
     Append( ShOB[2], [ 0 ] );
     Append( linrows, [ Size(ShOB[2]) ] );
-    conineq 
+    conineq ###h6=h6'-h5
     := ZeroMutable( [ 1 .. 2 ^ ncinstance[3] - 1 + ncinstance[3]+3 ] );
     conineq[ncinstance[3]]:=1;
     conineq[ncinstance[3]-1]:=1;
@@ -112,7 +112,7 @@ NCShannonBounded:=function ( ncinstance )
     Append( ShOB[1], [ conineq ] );
     Append( ShOB[2], [ 0 ] );
     Append( linrows, [ Size(ShOB[2]) ] );
-    conineq 
+    conineq ###h7=h7'-h5
     := ZeroMutable( [ 1 .. 2 ^ ncinstance[3] - 1 + ncinstance[3]+3 ] );
     conineq[ncinstance[3]]:=1;
     conineq[ncinstance[3]-1]:=1;
@@ -121,10 +121,69 @@ NCShannonBounded:=function ( ncinstance )
     Append( ShOB[2], [ 0 ] );
     Append( linrows, [ Size(ShOB[2]) ] );
     conineq := ZeroMutable( [ 1 .. 2 ^ ncinstance[3] - 1 + ncinstance[3] ] );
-    for j  in [ 1 .. ncinstance[3] ]  do
+    for j  in [ 1 .. ncinstance[3]-2 ]  do
         conineq[j] := 1;
     od;
     Append( ShOB[1], [ conineq ] );
     Append( ShOB[2], [ 1 ] );
     return [ ShOB[1], ShOB[2], linrows ];
+end;
+
+####Add two more variables instead of three
+NCRateRegionOBAnetpartial2TowMore:=function ( ncinstance, usesym, optargs)
+    local  rlist, A, b, linrows, G, rlist1, ineq, ineqorb, row, rrA, rrb, onemap, nslist, idx, nsrec, los,
+    lolos, Oi, O, trans_ineq,i,j,A1,B1,B2,A2,c,list,dif,Ab,A3,b3,linrows3,row1,coneq;
+    rlist := NCShannonBoundedAnetTowMore( ncinstance );
+    A := rlist[1];
+    b := rlist[2];
+    linrows := rlist[3];
+    if usesym = false  then
+        G := Group( [ () ] );
+    else
+        G := NetSymGroup( ncinstance );
+    fi;
+    if Size( optargs ) > 0  then
+        nslist := [  ];
+        nsrec := optargs[1];
+        for idx  in RecNamesInt( nsrec )  do
+            lolos := nsrec.(idx);
+            for los  in lolos  do
+                if idx = 1  then
+                    ineq := ZYNonShannon( los, ncinstance[3] );
+                    ineqorb := Orbit( G, ineq, OnEntropySpace );
+                    Append( nslist, ineqorb );
+                else
+                    ineq := DFZNonShannon( idx - 1, los, ncinstance[3] );
+                    ineqorb := Orbit( G, ineq, OnEntropySpace );
+                    Append( nslist, ineqorb );
+                fi;
+            od;
+        od;
+        Append( A, nslist );
+        Append( b, ZeroMutable( [ 1 .. Size( nslist ) ] ) );
+    fi;
+    rlist1 := symCHM( A, b, linrows, ncinstance[3]+1, G, OnProjPts, OnProjIneq, 
+       false );
+    Display( Concatenation( "stats:  No. of LPs solved = ", 
+       String( rlist1[3][1] ), ", \n\t No. of facets = ", 
+       String( Size( rlist1[2] ) ), 
+       ", \n\tDD stepsizes beyond initial hull = ", String( rlist1[3][2] ) ) 
+     );
+    rrA := [  ];
+    rrb := [  ];
+    for row  in rlist1[2]  do
+        onemap := function ( x )
+              return 1;
+          end;
+        if not row[Size(row)] >0  then
+            Append( rrA, [ row{[ 1 .. Size( row ) - 1 ]} ] );
+            Append( rrb, [ row[Size( row )] ] );
+        fi;
+    od;
+    trans_ineq := [  ];
+    Oi := OrbitsDomain( G, rrA, OnProjIneq );
+    for O  in Oi  do
+        Append( trans_ineq, [ O[1] ] );
+    od;
+    return [ trans_ineq, RRparse( ncinstance, trans_ineq ),rlist1];
 end;
