@@ -81,19 +81,20 @@ NCShannonBoundedAnetTowMore:=function ( ncinstance )
         Append( ShOB[1], [ conineq ] );
         Append( ShOB[2], [ 0 ] );
         conineq 
-         := ZeroMutable( [ 1 .. 2 ^ ncinstance[3] - 1 + ncinstance[3] ] );
+         := ZeroMutable( [ 1 .. 2 ^ ncinstance[3] - 1 + ncinstance[3]+3 ] );
         conineq[j] := -1;
         Append( ShOB[1], [ conineq ] );
         Append( ShOB[2], [ 0 ] );
     od;
     
-    for j in [ncinstance[3]+2..ncinstance[3]+3] do  ###h6'<=H(ncinstance[3]-1), h7'<=H(ncinstance[3])
+    for j in [ncinstance[3]+2..ncinstance[3]+3] do  ###h6'=H(ncinstance[3]-1), h7'=H(ncinstance[3])
 	 conineq 
          := ZeroMutable( [ 1 .. 2 ^ ncinstance[3] - 1 + ncinstance[3]+3 ] );
 	  conineq[j] := 1;
 	  conineq[ncinstance[3]+3 + set2int( [ j-3 ] )] := -1;
 	  Append( ShOB[1], [ conineq ] );
           Append( ShOB[2], [ 0 ] );
+	  Append( linrows, [ Size(ShOB[2]) ] );
     od;
     conineq 
     := ZeroMutable( [ 1 .. 2 ^ ncinstance[3] - 1 + ncinstance[3]+3 ] );  ####h5=h6'+h7'-H(ncinstance[3]-1,ncinstance[3])
